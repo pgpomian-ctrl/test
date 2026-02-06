@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GuitarFix Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#000000',
+            carbon: '#1A1A1A',
+            gold: '#FFD700',
+          },
+          fontFamily: {
+            mono: ['"Space Mono"', 'monospace'],
+            display: ['"Montserrat"', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/i18next@23.11.5/dist/umd/i18next.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/i18next-browser-languagedetector@7.2.0/i18nextBrowserLanguageDetector.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body class="bg-ink text-white font-mono">
+  <div class="min-h-screen" x-data="guitarfixApp()" x-init="initI18n()">
+    <header class="bg-carbon border-b border-gold/40">
+      <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p class="text-gold text-xs uppercase tracking-[0.3em]" data-i18n="tagline">Technical Sanctuary</p>
+          <h1 class="font-display text-3xl md:text-4xl text-white">GuitarFix Pro</h1>
+          <p class="text-white/70 text-sm" data-i18n="subtitle">Industrial repair intelligence for modern luthiers.</p>
+        </div>
+        <nav class="flex flex-wrap gap-3 items-center text-xs uppercase text-white/70">
+          <a href="#login" class="hover:text-gold" data-i18n="nav.login">Login</a>
+          <a href="#garage" class="hover:text-gold" data-i18n="nav.garage">Garage</a>
+          <a href="#guides" class="hover:text-gold" data-i18n="nav.guides">Guides</a>
+          <a href="#academy" class="hover:text-gold" data-i18n="nav.academy">Academy</a>
+        </nav>
+        <div class="flex flex-wrap gap-3 items-center">
+          <button class="px-3 py-2 border border-gold/60 text-gold text-xs uppercase" @click="setLanguage('en')">EN</button>
+          <button class="px-3 py-2 border border-gold/60 text-gold text-xs uppercase" @click="setLanguage('pl')">PL</button>
+          <button class="px-3 py-2 border border-gold/60 text-gold text-xs uppercase" @click="setLanguage('de')">DE</button>
+          <button class="px-4 py-2 bg-gold text-ink font-display" @click="toggleWorkshop">Workshop Mode</button>
+        </div>
+      </div>
+    </header>
+
+    <main :class="workshopMode ? 'bg-black' : 'bg-ink'" class="transition-colors duration-500">
+      <section id="login" class="max-w-6xl mx-auto px-4 py-10 grid gap-8 lg:grid-cols-2">
+        <div class="space-y-6">
+          <div class="bg-carbon p-6 border border-gold/20 shadow-lg">
+            <div class="flex items-center justify-between">
+              <h2 class="font-display text-2xl text-gold" data-i18n="account.title">Operator Console</h2>
+              <span class="text-xs uppercase text-gold/70" x-text="account.role"></span>
+            </div>
+            <p class="text-white/70 text-sm" data-i18n="account.subtitle">Authenticate to sync your garage, XP, and saved protocols.</p>
+            <div class="mt-4 grid gap-4">
+              <div class="border border-gold/30 p-4 bg-black/40">
+                <div class="flex flex-col gap-3">
+                  <div>
+                    <label class="text-xs text-white/60" for="email">Email</label>
+                    <input id="email" type="email" placeholder="operator@guitarfix.pro" class="mt-1 w-full bg-black/60 border border-gold/20 px-3 py-2 text-sm text-white" x-model="auth.email" />
+                  </div>
+                  <div>
+                    <label class="text-xs text-white/60" for="password">Password</label>
+                    <input id="password" type="password" placeholder="••••••••" class="mt-1 w-full bg-black/60 border border-gold/20 px-3 py-2 text-sm text-white" x-model="auth.password" />
+                  </div>
+                  <div class="flex flex-wrap gap-3">
+                    <button class="px-4 py-2 bg-gold text-ink font-display" @click="login" data-i18n="account.login">Login</button>
+                    <button class="px-4 py-2 border border-gold/60 text-gold" @click="register" data-i18n="account.register">Create Account</button>
+                  </div>
+                  <p class="text-xs text-white/60" x-text="authStatus"></p>
+                </div>
+              </div>
+              <div class="border border-gold/30 p-4 bg-black/40">
+                <h3 class="text-gold text-sm" data-i18n="account.badges">Master Luthier Badges</h3>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="border border-gold/40 px-2 py-1 text-xs">Intonation Architect</span>
+                  <span class="border border-gold/40 px-2 py-1 text-xs">Noise Floor Guardian</span>
+                  <span class="border border-gold/40 px-2 py-1 text-xs">Neck Relief Analyst</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="garage" class="bg-carbon p-6 border border-gold/20 shadow-lg">
+            <h2 class="font-display text-2xl text-gold" data-i18n="hero.title">Virtual Garage</h2>
+            <p class="text-white/70" data-i18n="hero.description">Maintain every instrument with individualized setup telemetry and service history.</p>
+            <div class="mt-4 grid gap-4">
+              <template x-for="guitar in garage" :key="guitar.id">
+                <div class="border border-gold/30 p-4 bg-black/40">
+                  <div class="flex justify-between text-sm">
+                    <span class="text-gold" x-text="guitar.name"></span>
+                    <span class="text-white/60" x-text="guitar.lastService"></span>
+                  </div>
+                  <p class="text-white/80 text-xs mt-2" x-text="guitar.note"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+          <div class="bg-carbon p-6 border border-gold/20">
+            <h3 class="font-display text-xl" data-i18n="science.title">The Science Lab</h3>
+            <p class="text-white/70" data-i18n="science.desc">String tension, intonation, and scale length diagnostics.</p>
+            <div class="mt-4 bg-black/60 p-4 border border-gold/20">
+              <p class="text-gold text-sm">F = (m · L² · f²) / g</p>
+              <p class="text-white/70 text-xs mt-2" data-i18n="science.caption">Use mass, length, and frequency to compute tension.</p>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-6">
+          <div class="bg-carbon p-6 border border-gold/20">
+            <div class="flex justify-between items-center">
+              <h2 class="font-display text-2xl text-gold" data-i18n="workshop.title">Workshop Mode</h2>
+              <span class="text-xs uppercase text-gold" :class="workshopMode ? '' : 'opacity-40'">High Contrast</span>
+            </div>
+            <p class="text-white/70" data-i18n="workshop.description">Voice navigation, high-contrast interface, and guided progress.</p>
+            <div class="mt-4">
+              <div class="flex items-center justify-between text-xs">
+                <span data-i18n="workshop.progress">Progress</span>
+                <span x-text="progress + '%'" class="text-gold"></span>
+              </div>
+              <div class="h-2 bg-black/50 mt-2 border border-gold/20">
+                <div class="h-full bg-gold" :style="`width:${progress}%`"></div>
+              </div>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button class="px-4 py-2 bg-gold text-ink font-display" @click="nextStep" data-i18n="workshop.next">Next Step</button>
+                <button class="px-4 py-2 border border-gold/60 text-gold" @click="startVoice" data-i18n="workshop.voice">Voice Command</button>
+              </div>
+              <p class="text-xs text-white/60 mt-3" x-text="voiceStatus"></p>
+            </div>
+          </div>
+          <div class="bg-carbon p-6 border border-gold/20">
+            <h3 class="font-display text-xl text-gold" data-i18n="diagram.title">Interactive Diagram</h3>
+            <p class="text-white/70" data-i18n="diagram.desc">Tap zones to identify components.</p>
+            <div class="mt-4 bg-black/60 p-4 border border-gold/20">
+              <svg viewBox="0 0 400 160" class="w-full h-40" fill="none" stroke="#FFD700" stroke-width="2">
+                <path d="M20 80 C60 20, 120 20, 160 80 C120 140, 60 140, 20 80Z" />
+                <rect x="160" y="60" width="160" height="40" />
+                <rect x="320" y="55" width="60" height="50" />
+                <circle cx="340" cy="70" r="6" />
+                <circle cx="340" cy="90" r="6" />
+              </svg>
+              <div class="grid grid-cols-2 gap-2 text-xs text-white/70 mt-3">
+                <div class="border border-gold/20 p-2">Body</div>
+                <div class="border border-gold/20 p-2">Neck</div>
+                <div class="border border-gold/20 p-2">Headstock</div>
+                <div class="border border-gold/20 p-2">Tuners</div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-carbon p-6 border border-gold/20">
+            <h3 class="font-display text-xl text-gold" data-i18n="lessons.title">Guitar Fix Lessons</h3>
+            <p class="text-white/70" data-i18n="lessons.desc">Advanced protocols with torque specs, tools, and calibration notes.</p>
+            <div class="mt-4 grid gap-3">
+              <template x-for="lesson in fixLessons" :key="lesson.id">
+                <div class="border border-gold/20 p-3 bg-black/50">
+                  <div class="flex justify-between text-xs text-white/60">
+                    <span x-text="lesson.level"></span>
+                    <span x-text="lesson.duration"></span>
+                  </div>
+                  <p class="text-gold text-sm mt-1" x-text="lesson.title"></p>
+                  <p class="text-xs text-white/70" x-text="lesson.summary"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="guides" class="max-w-6xl mx-auto px-4 pb-12">
+        <div class="bg-carbon p-6 border border-gold/20">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h2 class="font-display text-2xl text-gold" data-i18n="guides.title">Guides & Protocols</h2>
+              <p class="text-white/70" data-i18n="guides.desc">Precision steps with XP rewards and Master Luthier badges.</p>
+            </div>
+            <div class="text-xs text-white/60">
+              <span data-i18n="guides.xp">XP Earned</span>: <span class="text-gold" x-text="xp"></span>
+            </div>
+          </div>
+          <div class="mt-6 grid gap-4 md:grid-cols-2">
+            <template x-for="guide in guides" :key="guide.id">
+              <article class="border border-gold/20 p-4 bg-black/40">
+                <div class="flex justify-between text-xs text-white/60">
+                  <span x-text="guide.category"></span>
+                  <span x-text="guide.difficulty"></span>
+                </div>
+                <h3 class="font-display text-lg text-gold mt-2" x-text="guide.title"></h3>
+                <p class="text-xs text-white/70 mt-2" x-text="guide.summary"></p>
+                <button class="mt-3 text-xs uppercase text-gold" @click="selectGuide(guide)">View Steps</button>
+              </article>
+            </template>
+          </div>
+          <div class="mt-6 border-t border-gold/20 pt-4" x-show="activeGuide">
+            <h4 class="font-display text-xl text-gold" x-text="activeGuide?.title"></h4>
+            <ul class="mt-3 space-y-2 text-sm">
+              <template x-for="(step, index) in activeGuide?.steps" :key="index">
+                <li class="flex items-start gap-3">
+                  <span class="text-gold">#<span x-text="index + 1"></span></span>
+                  <span class="text-white/70" x-text="step"></span>
+                </li>
+              </template>
+            </ul>
+          </div>
+        </div>
+      </section>
+      <section id="academy" class="max-w-6xl mx-auto px-4 pb-12">
+        <div class="bg-carbon p-6 border border-gold/20">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h2 class="font-display text-2xl text-gold" data-i18n="academy.title">Guitar Lessons Academy</h2>
+              <p class="text-white/70" data-i18n="academy.desc">Technique drills, theory modules, and pro-grade practice plans.</p>
+            </div>
+            <button class="px-4 py-2 bg-gold text-ink font-display" data-i18n="academy.enroll">Enroll</button>
+          </div>
+          <div class="mt-6 grid gap-4 md:grid-cols-3">
+            <template x-for="track in lessonTracks" :key="track.id">
+              <article class="border border-gold/20 p-4 bg-black/40">
+                <div class="text-xs text-white/60" x-text="track.level"></div>
+                <h3 class="font-display text-lg text-gold mt-2" x-text="track.title"></h3>
+                <p class="text-xs text-white/70 mt-2" x-text="track.summary"></p>
+                <ul class="text-xs text-white/60 mt-3 space-y-1">
+                  <template x-for="(module, idx) in track.modules" :key="idx">
+                    <li class="flex items-center gap-2">
+                      <span class="text-gold">•</span>
+                      <span x-text="module"></span>
+                    </li>
+                  </template>
+                </ul>
+              </article>
+            </template>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-gold/30 bg-black">
+      <div class="max-w-6xl mx-auto px-4 py-6 text-xs text-white/60">
+        <p data-i18n="footer">GuitarFix Pro • Industrial-grade guitar intelligence.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    function guitarfixApp() {
+      return {
+        workshopMode: false,
+        progress: 35,
+        xp: 1280,
+        voiceStatus: 'Voice navigation ready.',
+        auth: {
+          email: '',
+          password: '',
+        },
+        authStatus: 'Offline mode. Authenticate to sync.',
+        account: {
+          role: 'Guest',
+        },
+        garage: [
+          { id: 1, name: 'Fender Stratocaster', lastService: '2024-10-02', note: 'Bridge float recalibrated, 9-42 setup.' },
+          { id: 2, name: 'Gibson Les Paul', lastService: '2024-09-18', note: 'Nut slot rework, intonation locked.' },
+          { id: 3, name: 'PRS Custom 24', lastService: '2024-08-11', note: 'Pickup height calibration and phase test.' },
+        ],
+        guides: [
+          {
+            id: 1,
+            category: 'Setup',
+            difficulty: 'Medium',
+            title: 'Precision Intonation Routine',
+            summary: 'Dial in scale length with harmonic checkpoints and micro-adjustments.',
+            steps: [
+              'Stabilize string tension with 3 tuning passes.',
+              'Measure 12th fret harmonic vs fretted pitch.',
+              'Adjust saddle position in 0.5mm increments.',
+            ],
+          },
+          {
+            id: 2,
+            category: 'Electronics',
+            difficulty: 'Hard',
+            title: 'Noise Floor Isolation',
+            summary: 'Trace grounding loops and shield cavities with graphite tape.',
+            steps: [
+              'Identify noisy pickup via isolated switch.',
+              'Inspect ground continuity with multimeter.',
+              'Apply shielding and re-test noise threshold.',
+            ],
+          },
+        ],
+        fixLessons: [
+          {
+            id: 1,
+            title: 'Truss Rod Calibration',
+            level: 'Advanced',
+            duration: '35 min',
+            summary: 'Dial in relief with precision feeler gauges and torque limits.',
+          },
+          {
+            id: 2,
+            title: 'Bridge Saddle Micro-Adjust',
+            level: 'Pro',
+            duration: '25 min',
+            summary: 'Track intonation shifts with harmonic checkpoints.',
+          },
+          {
+            id: 3,
+            title: 'Pickup Phase Diagnosis',
+            level: 'Intermediate',
+            duration: '30 min',
+            summary: 'Solve phase cancellation and noise floor issues.',
+          },
+        ],
+        lessonTracks: [
+          {
+            id: 1,
+            level: 'Foundations',
+            title: 'Rhythm Systems',
+            summary: 'Lock timing, dynamics, and groove with metronome intelligence.',
+            modules: ['Syncopation drills', 'Hybrid picking', 'Palm mute control'],
+          },
+          {
+            id: 2,
+            level: 'Intermediate',
+            title: 'Harmony Mechanics',
+            summary: 'Chord construction, modal mapping, and voicing mobility.',
+            modules: ['Modal interchange', 'Drop voicings', 'Voice leading'],
+          },
+          {
+            id: 3,
+            level: 'Advanced',
+            title: 'Lead Architecture',
+            summary: 'Speed, articulation, and phrasing with neural drills.',
+            modules: ['Legato chains', 'Sweep accuracy', 'Vibrato control'],
+          },
+        ],
+        activeGuide: null,
+        initI18n() {
+          i18next.use(i18nextBrowserLanguageDetector).init({
+            fallbackLng: 'en',
+            resources: {
+              en: {
+                translation: {
+                  tagline: 'Technical Sanctuary',
+                  subtitle: 'Industrial repair intelligence for modern luthiers.',
+                  hero: {
+                    title: 'Virtual Garage',
+                    description: 'Maintain every instrument with individualized setup telemetry and service history.',
+                  },
+                  science: {
+                    title: 'The Science Lab',
+                    desc: 'String tension, intonation, and scale length diagnostics.',
+                    caption: 'Use mass, length, and frequency to compute tension.',
+                  },
+                  workshop: {
+                    title: 'Workshop Mode',
+                    description: 'Voice navigation, high-contrast interface, and guided progress.',
+                    progress: 'Progress',
+                    next: 'Next Step',
+                    voice: 'Voice Command',
+                  },
+                  diagram: {
+                    title: 'Interactive Diagram',
+                    desc: 'Tap zones to identify components.',
+                  },
+                  guides: {
+                    title: 'Guides & Protocols',
+                    desc: 'Precision steps with XP rewards and Master Luthier badges.',
+                    xp: 'XP Earned',
+                  },
+                  footer: 'GuitarFix Pro • Industrial-grade guitar intelligence.',
+                  nav: {
+                    login: 'Login',
+                    garage: 'Garage',
+                    guides: 'Guides',
+                    academy: 'Academy',
+                  },
+                  account: {
+                    title: 'Operator Console',
+                    subtitle: 'Authenticate to sync your garage, XP, and saved protocols.',
+                    login: 'Login',
+                    register: 'Create Account',
+                    badges: 'Master Luthier Badges',
+                  },
+                  lessons: {
+                    title: 'Guitar Fix Lessons',
+                    desc: 'Advanced protocols with torque specs, tools, and calibration notes.',
+                  },
+                  academy: {
+                    title: 'Guitar Lessons Academy',
+                    desc: 'Technique drills, theory modules, and pro-grade practice plans.',
+                    enroll: 'Enroll',
+                  },
+                },
+              },
+              pl: {
+                translation: {
+                  tagline: 'Techniczne Sanktuarium',
+                  subtitle: 'Przemysłowa inteligencja napraw dla lutników.',
+                  hero: {
+                    title: 'Wirtualny Garaż',
+                    description: 'Zarządzaj instrumentami z historią serwisu i telemetrią ustawień.',
+                  },
+                  science: {
+                    title: 'Laboratorium Nauki',
+                    desc: 'Napięcie strun, intonacja i długość menzury.',
+                    caption: 'Użyj masy, długości i częstotliwości do obliczeń.',
+                  },
+                  workshop: {
+                    title: 'Tryb Warsztatowy',
+                    description: 'Nawigacja głosowa, wysoki kontrast i progres napraw.',
+                    progress: 'Postęp',
+                    next: 'Następny krok',
+                    voice: 'Komenda głosowa',
+                  },
+                  diagram: {
+                    title: 'Diagram interaktywny',
+                    desc: 'Wybierz strefę, aby zidentyfikować elementy.',
+                  },
+                  guides: {
+                    title: 'Przewodniki i protokoły',
+                    desc: 'Precyzyjne kroki z XP i odznakami Master Luthier.',
+                    xp: 'Zdobyte XP',
+                  },
+                  footer: 'GuitarFix Pro • Przemysłowa inteligencja gitarowa.',
+                  nav: {
+                    login: 'Logowanie',
+                    garage: 'Garaż',
+                    guides: 'Przewodniki',
+                    academy: 'Akademia',
+                  },
+                  account: {
+                    title: 'Konsola Operatora',
+                    subtitle: 'Zaloguj się, aby zsynchronizować garaż i XP.',
+                    login: 'Zaloguj',
+                    register: 'Utwórz konto',
+                    badges: 'Odznaki Master Luthier',
+                  },
+                  lessons: {
+                    title: 'Lekcje napraw gitar',
+                    desc: 'Zaawansowane protokoły, narzędzia i notatki kalibracji.',
+                  },
+                  academy: {
+                    title: 'Akademia lekcji gitarowych',
+                    desc: 'Ćwiczenia techniki, teoria i plany praktyki.',
+                    enroll: 'Zapisz się',
+                  },
+                },
+              },
+              de: {
+                translation: {
+                  tagline: 'Technisches Heiligtum',
+                  subtitle: 'Industrielle Reparaturintelligenz für moderne Gitarrenbauer.',
+                  hero: {
+                    title: 'Virtuelle Garage',
+                    description: 'Instrumente mit Setup-Telemetrie und Servicehistorie verwalten.',
+                  },
+                  science: {
+                    title: 'Das Wissenschaftslabor',
+                    desc: 'Saitenspannung, Intonation und Mensur.',
+                    caption: 'Masse, Länge und Frequenz für die Spannung nutzen.',
+                  },
+                  workshop: {
+                    title: 'Werkstattmodus',
+                    description: 'Sprachnavigation, hoher Kontrast und geführter Fortschritt.',
+                    progress: 'Fortschritt',
+                    next: 'Nächster Schritt',
+                    voice: 'Sprachbefehl',
+                  },
+                  diagram: {
+                    title: 'Interaktives Diagramm',
+                    desc: 'Zonen antippen, um Bauteile zu erkennen.',
+                  },
+                  guides: {
+                    title: 'Anleitungen & Protokolle',
+                    desc: 'Präzise Schritte mit XP und Master-Luthier-Abzeichen.',
+                    xp: 'Verdiente XP',
+                  },
+                  footer: 'GuitarFix Pro • Industrielle Gitarrenintelligenz.',
+                  nav: {
+                    login: 'Login',
+                    garage: 'Garage',
+                    guides: 'Anleitungen',
+                    academy: 'Akademie',
+                  },
+                  account: {
+                    title: 'Operator-Konsole',
+                    subtitle: 'Anmelden, um Garage, XP und Protokolle zu synchronisieren.',
+                    login: 'Anmelden',
+                    register: 'Konto erstellen',
+                    badges: 'Master-Luthier-Abzeichen',
+                  },
+                  lessons: {
+                    title: 'Gitarrenreparatur-Lektionen',
+                    desc: 'Fortgeschrittene Protokolle mit Drehmoment und Kalibrierung.',
+                  },
+                  academy: {
+                    title: 'Gitarrenunterricht-Akademie',
+                    desc: 'Technik, Theorie und professionelle Übungspläne.',
+                    enroll: 'Einschreiben',
+                  },
+                },
+              },
+            },
+          }).then(() => {
+            this.applyTranslations();
+          });
+        },
+        login() {
+          if (!this.auth.email || !this.auth.password) {
+            this.authStatus = 'Missing credentials.';
+            return;
+          }
+          this.authStatus = 'Authenticated. Syncing garage...';
+          this.account.role = 'Operator';
+          this.xp += 50;
+        },
+        register() {
+          if (!this.auth.email || !this.auth.password) {
+            this.authStatus = 'Provide email and password to register.';
+            return;
+          }
+          this.authStatus = 'Account created. Please confirm email.';
+          this.account.role = 'Apprentice';
+        },
+        applyTranslations() {
+          document.querySelectorAll('[data-i18n]').forEach((el) => {
+            const key = el.getAttribute('data-i18n');
+            el.textContent = i18next.t(key);
+          });
+        },
+        setLanguage(lang) {
+          i18next.changeLanguage(lang).then(() => this.applyTranslations());
+        },
+        toggleWorkshop() {
+          this.workshopMode = !this.workshopMode;
+        },
+        nextStep() {
+          this.progress = Math.min(100, this.progress + 15);
+          if (this.progress === 100) {
+            this.xp += 120;
+          }
+        },
+        selectGuide(guide) {
+          this.activeGuide = guide;
+        },
+        startVoice() {
+          if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            this.voiceStatus = 'Voice recognition not supported in this browser.';
+            return;
+          }
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          const recognition = new SpeechRecognition();
+          recognition.lang = i18next.language || 'en';
+          recognition.interimResults = false;
+          recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            this.voiceStatus = `Heard: ${transcript}`;
+            if (transcript.toLowerCase().includes('next')) {
+              this.nextStep();
+            }
+          };
+          recognition.onerror = () => {
+            this.voiceStatus = 'Voice recognition error.';
+          };
+          recognition.start();
+          this.voiceStatus = 'Listening for commands...';
+        },
+      };
+    }
+  </script>
+</body>
+</html>
